@@ -1,10 +1,10 @@
-// Embeds every strip (cached in work/vectors.json) and writes the offline app to build/app/.
+// Embeds every strip (cached in data/vectors.json) and writes the offline app to build/app/.
 import { mkdir, readFile, readdir, writeFile, copyFile } from 'node:fs/promises';
 import { build } from 'esbuild';
 import * as ort from 'onnxruntime-web';
 import { makeEmbedder } from '../src/embedder.js';
 
-const out = 'build/app/', model = 'models/all-MiniLM-L6-v2/', cachePath = 'work/vectors.json';
+const out = 'build/app/', model = 'models/all-MiniLM-L6-v2/', cachePath = 'data/vectors.json';
 const DIM = 384;
 const dataDir = process.argv[2] || 'data';
 await mkdir(out, { recursive: true });

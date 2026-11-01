@@ -7,4 +7,4 @@ rights holders of Dilbert. The MIT licence covers this project's code only.
 Dilbert strips and their text belong to their respective rights holders. This
 repository contains no strip images.
 
-Work in progress.
+Setup and status are in `CLAUDE.md`. `npm install`, `npm run fetch-model`, then `npm run build` writes the app to `build/app/`.
