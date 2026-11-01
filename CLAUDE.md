@@ -27,18 +27,23 @@ project, kept in a private repo for now.
 - `src/search.js`: ranking and score constants. `src/app.js`, `src/index.html`: the page.
 - `tools/try-search.mjs "query" ...`: runs queries from the command line against `build/app/data.js`.
 - `tools/extract.mjs`: the Sonnet 5.5 Batch API extraction. It needs the archive and an API key, and neither is on the Mac by default.
+- `tools/package-app.mjs`: `npm run package` writes `build/DilbertSearch.zip` from `build/app/`. Run it after `npm run build`.
 - `models/` and `build/` are not tracked. Run `npm run fetch-model`, then `npm run build`.
 
 ## Status
 
-Done: extraction, index, working app built from all 12,384 strips, and meaning search confirmed from `file://` in Safari and Chrome with a prototype.
+Done: extraction, index, working app built from all 12,384 strips, meaning search confirmed from `file://` in Safari and Chrome with a prototype, packaging, and the unzipped copy tested from `file://` in Chrome (load about 2.6 s, search under 50 ms, Copy works).
+
+Ranking checks that must keep passing, run with `tools/try-search.mjs`:
+
+- `We just had an anonymous satisfaction survey and we're only 5 people in the team. It's easy figure who answered what`: `2010-09-01` first.
+- `Dogbert is a cloud expert`: the March 2020 strips above `1992-12-13`.
+- `told to do a colleague's job as well with no extra resources`: `2005-09-16` in the top five. This depends on `SYNONYMS`, because the strip's vector barely matches the query. Trying other `embedText` versions did not help.
+- `cloud bunny`: `1992-12-13` first. `quality approaches zero`: `2005-09-16` first.
+
+Changes in `src/search.js` need only a rebuild. Changes to `embedText` mean deleting `data/vectors.json` and re-embedding.
 
 Remaining:
 
-1. Tune ranking with the owner's sample queries. Ask for them first.
-   - `Dogbert is a cloud expert` finds the March 2020 strips, but `1992-12-13` ranks too high because of a cloud-bunny tag.
-   - `told to do a colleague's job as well with no extra resources` does not put `2005-09-16` in the top five.
-   - Changes in `src/search.js` need only a rebuild. Changes to `embedText` mean deleting `data/vectors.json` and re-embedding.
-2. Test the full app from `file://` in Safari and Chrome, including load time, search speed and the Copy button.
-3. Add a packaging step that writes `DilbertSearch.zip` from `build/app/`, and test the unzipped copy.
-4. Commit and push.
+1. Test the unzipped copy from `file://` in Safari, including load time, search speed and the Copy button.
+2. Tune ranking further with any more sample queries from the owner.
