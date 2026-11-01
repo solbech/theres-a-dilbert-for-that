@@ -1,5 +1,5 @@
 // Embeds every strip (cached in data/vectors.json) and writes the offline app to build/app/.
-import { mkdir, readFile, readdir, writeFile, copyFile } from 'node:fs/promises';
+import { chmod, mkdir, readFile, readdir, writeFile, copyFile } from 'node:fs/promises';
 import { build } from 'esbuild';
 import * as ort from 'onnxruntime-web';
 import { makeEmbedder } from '../src/embedder.js';
@@ -40,4 +40,6 @@ const wasm = await readFile('node_modules/onnxruntime-web/dist/ort-wasm-simd-thr
 await writeFile(out + 'wasm.js', `window.WASM_B64="${wasm.toString('base64')}";`);
 await writeFile(out + 'model.js', `window.MODEL_B64="${onnx.toString('base64')}";window.VOCAB=${JSON.stringify(vocab)};`);
 await copyFile('src/index.html', out + 'index.html');
+await copyFile('src/index-archive.command', out + 'index-archive.command');
+await chmod(out + 'index-archive.command', 0o755);
 console.log(`built ${strips.length} strips`);

@@ -24,15 +24,36 @@ summary{cursor:pointer}
 .joke{font-style:italic}
 .none{color:var(--muted)}
 footer{margin-top:32px;font-size:13px;color:var(--muted)}
-footer input{padding:6px;margin-top:4px}
+footer{border-top:1px solid var(--line);padding-top:12px}
+#settings{margin-bottom:16px}
+.field{margin:10px 0}
+.field input[type=text],.field select{font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px;margin-top:4px}
+.field input[type=checkbox]{width:auto;margin-right:6px}
+.row{display:flex;gap:8px;align-items:center}
+.row input{flex:1;min-width:0}
+.row button{white-space:nowrap}
+.hint{margin:4px 0 0}
+.bad{color:var(--accent)}
+.strip{display:block;max-width:100%;height:auto;margin:10px 0;background:#fff;border-radius:4px}
+#results.strip-full .strip{width:100%}
+#results.strip-medium .strip{width:65%}
+#results.strip-small .strip{width:40%}
+.missing{margin:10px 0;padding:10px;border:1px dashed var(--line);border-radius:6px;font-size:13px;color:var(--muted)}
 </style></head><body><main>
 <h1>There's a Dilbert for that!</h1>
 <p class="sub">Describe the situation. Find the strip.</p>
 <form id="form"><input id="q" disabled autocomplete="off" placeholder="Dogbert is a cloud expert"></form>
 <div id="status">Loading…</div>
 <div id="results"></div>
-<footer><label>Archive location<input id="archive"></label>
+<footer><details id="settings"><summary>Settings</summary>
+<div class="field"><label><input type="checkbox" id="show-strips">Show strips in results</label></div>
+<div class="field"><label for="archive">Archive location</label>
+<div class="row"><input type="text" id="archive" spellcheck="false" autocomplete="off"><button type="button" id="test-archive">Test location</button></div>
+<p class="hint" id="archive-hint"></p></div>
+<div class="field"><label for="strip-size">Strip size</label><br>
+<select id="strip-size"><option value="full">Full width</option><option value="medium">Medium</option><option value="small">Small</option></select></div>
+</details>
 <p>Unofficial fan project, not affiliated with the creator or rights holders of Dilbert. Scores are estimates. Titles are generated.</p></footer>
 </main>
-<script src="wasm.js"></script><script src="model.js"></script><script src="data.js"></script><script src="app.js"></script>
+<script src="wasm.js"></script><script src="model.js"></script><script src="data.js"></script><script src="archive-index.js"></script><script src="app.js"></script>
 </body></html>

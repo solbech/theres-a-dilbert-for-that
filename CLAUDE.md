@@ -8,7 +8,11 @@ project, kept in a private repo for now.
 
 - Free-text search by situation or meaning as well as exact words.
 - Each result shows `YYYY-MM-DD`, the title, and a 0-10 match score in 0.1 steps.
-- Each result shows the strip's location under `/Volumes/Public/Dilbert/` with a copy button. No images.
+- Each result shows the strip's location under the archive folder with a copy button, and the strip itself when Show strips is on.
+- Strip images load only from the user's own archive. Never bundle them in the app, the zip or the repo.
+- An archive with different folders or filenames is supported by `index-archive.command`, a run-once script that ships with the app. It finds each file by the `YYYY-MM-DD` in its name and writes `archive-index.js` next to itself. The app uses that file if present, and the paths in `data.js` otherwise. Mac and Linux only.
+- Settings are saved per browser: Show strips (default on), Archive location (default `/Volumes/Public/Dilbert`, tested with Test location) and Strip size. Paths are macOS or Linux style only.
+- Safari only lets a `file://` page load images from its own folder and below (tested: absolute paths, parent folders and symlinks are blocked). So for Safari the app files go inside the archive folder, next to the year folders. The app detects this at startup and uses its own folder as the archive. Chrome works from anywhere.
 - Web interface opened directly from `index.html` (`file://`). No launcher, no server, nothing to install, no API key.
 - Delivered as `DilbertSearch.zip`: unzip and open.
 
@@ -24,7 +28,7 @@ project, kept in a private repo for now.
 
 - `data/YYYY.jsonl`: extracted strips, all 12,384. Do not regenerate without asking: the run cost about $61.
 - `data/vectors.json`: cached embeddings. `tools/build-app.mjs` only embeds strips missing from it. Delete it after changing `embedText`.
-- `src/search.js`: ranking and score constants. `src/app.js`, `src/index.html`: the page.
+- `src/search.js`: ranking and score constants. `src/app.js`, `src/index.html`: the page. `src/index-archive.command`: the archive index script.
 - `tools/try-search.mjs "query" ...`: runs queries from the command line against `build/app/data.js`.
 - `tools/extract.mjs`: the Sonnet 5.5 Batch API extraction. It needs the archive and an API key, and neither is on the Mac by default.
 - `tools/package-app.mjs`: `npm run package` writes `build/DilbertSearch.zip` from `build/app/`. Run it after `npm run build`.
