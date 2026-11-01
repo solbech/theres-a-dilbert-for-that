@@ -32,7 +32,7 @@ project, kept in a private repo for now.
 
 ## Status
 
-Done: extraction, index, working app built from all 12,384 strips, meaning search confirmed from `file://` in Safari and Chrome with a prototype, packaging, and the unzipped copy tested from `file://` in Chrome (load about 2.6 s, search under 50 ms, Copy works).
+Done: extraction, index, working app built from all 12,384 strips, meaning search confirmed from `file://` in Safari and Chrome with a prototype, packaging, and the unzipped copy tested from `file://` in Chrome (load about 2.6 s, search under 50 ms, Copy works) and by the owner in Safari.
 
 Ranking checks that must keep passing, run with `tools/try-search.mjs`:
 
@@ -45,5 +45,4 @@ Changes in `src/search.js` need only a rebuild. Changes to `embedText` mean dele
 
 Remaining:
 
-1. Test the unzipped copy from `file://` in Safari, including load time, search speed and the Copy button.
-2. Tune ranking further with any more sample queries from the owner.
+1. Tune ranking further with any more sample queries from the owner.
