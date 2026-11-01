@@ -4,7 +4,7 @@ import { build } from 'esbuild';
 import * as ort from 'onnxruntime-web';
 import { makeEmbedder } from '../src/embedder.js';
 
-const out = 'build/app/', model = 'models/all-MiniLM-L6-v2/', cachePath = 'data/vectors.json';
+const out = 'build/app/', model = 'models/bge-small-en-v1.5/', cachePath = 'data/vectors.json';
 const DIM = 384;
 const dataDir = process.argv[2] || 'data';
 await mkdir(out, { recursive: true });

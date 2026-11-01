@@ -1,6 +1,8 @@
-// BERT WordPiece tokenizer plus mean-pooled ONNX inference. Shared by the
+// BERT WordPiece tokenizer plus CLS-pooled ONNX inference. Shared by the
 // index builder (Node) and the search page (browser) so vectors always match.
 const MAX_LEN = 256;
+// bge models expect this before queries, but not before the texts being searched.
+export const QUERY_PREFIX = 'Represent this sentence for searching relevant passages: ';
 
 const isPunct = (c) => /[\p{P}\p{S}]/u.test(c);
 
@@ -56,9 +58,7 @@ export async function makeEmbedder(ort, modelBytes, vocab) {
       attention_mask: tensor(ids.map(() => 1)),
       token_type_ids: tensor(ids.map(() => 0)),
     });
-    const dim = h.dims[2];
-    const vec = new Float32Array(dim);
-    for (let t = 0; t < n; t++) for (let d = 0; d < dim; d++) vec[d] += h.data[t * dim + d] / n;
+    const vec = Float32Array.from(h.data.slice(0, h.dims[2]));
     const norm = Math.hypot(...vec);
     return vec.map((v) => v / norm);
   };
