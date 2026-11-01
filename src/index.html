@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>There's a Dilbert for that!</title>
+<style>
+:root{--bg:#fbfaf6;--fg:#1f1f1c;--muted:#6c6a62;--line:#dedbd0;--card:#fff;--accent:#b3261e}
+@media (prefers-color-scheme:dark){:root{--bg:#191917;--fg:#ecebe5;--muted:#a09e94;--line:#3a3934;--card:#23221f;--accent:#f2807a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 -apple-system,system-ui,sans-serif}
+main{max-width:800px;margin:0 auto;padding:40px 16px}
+h1{margin:0;font-size:32px}
+.sub{margin:4px 0 24px;color:var(--muted)}
+input{font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;width:100%}
+#status{margin:8px 0 24px;color:var(--muted);font-size:14px}
+article{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:12px}
+.head{display:flex;gap:12px;align-items:baseline}
+time{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+h2{flex:1;margin:0;font-size:17px}
+.score{font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.path{display:flex;gap:8px;align-items:center;margin:6px 0}
+code{flex:1;font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+button{font:inherit;font-size:12px;color:inherit;background:none;border:1px solid var(--line);border-radius:6px;padding:2px 8px;cursor:pointer}
+details p{margin:8px 0}
+summary{cursor:pointer}
+.joke{font-style:italic}
+.none{color:var(--muted)}
+footer{margin-top:32px;font-size:13px;color:var(--muted)}
+footer input{padding:6px;margin-top:4px}
+</style></head><body><main>
+<h1>There's a Dilbert for that!</h1>
+<p class="sub">Describe the situation. Find the strip.</p>
+<form id="form"><input id="q" disabled autocomplete="off" placeholder="Dogbert is a cloud expert"></form>
+<div id="status">Loading…</div>
+<div id="results"></div>
+<footer><label>Archive location<input id="archive"></label>
+<p>Unofficial fan project, not affiliated with the creator or rights holders of Dilbert. Scores are estimates. Titles are generated.</p></footer>
+</main>
+<script src="wasm.js"></script><script src="model.js"></script><script src="data.js"></script><script src="app.js"></script>
+</body></html>

@@ -6,3 +6,5 @@ models/
 build/
 work/
 .env
+data/batches.json
+data/failures.log
