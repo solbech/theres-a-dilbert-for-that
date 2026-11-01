@@ -10,5 +10,8 @@
   "devDependencies": {
     "@huggingface/transformers": "^4.3.2",
     "esbuild": "^0.28.2"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0"
   }
 }
