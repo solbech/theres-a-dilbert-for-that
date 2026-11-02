@@ -1,6 +1,6 @@
 import * as ort from 'onnxruntime-web/wasm';
 import { makeEmbedder, QUERY_PREFIX } from './embedder.js';
-import { buildKeywordIndex, search } from './search.js';
+import { buildKeywordIndex, embeddingText, search } from './search.js';
 
 const $ = (id) => document.getElementById(id);
 const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
@@ -77,7 +77,7 @@ async function start() {
     e.preventDefault();
     const q = $('q').value.trim();
     if (!q) return;
-    hits = search(index, vectors, DIM, await embed(QUERY_PREFIX + q), q);
+    hits = search(index, vectors, DIM, await embed(QUERY_PREFIX + embeddingText(q)), q);
     render();
   };
   // Image errors do not bubble, so this listens in the capture phase.

@@ -1,11 +1,12 @@
 // Measures ranking against the CLAUDE.md checks and the test queries in eval/test-queries*.json.
-// Usage: node tools/eval.mjs [--all] [file.json ...]. Needs `npm run build` first.
+// Usage: node tools/eval.mjs [--all] [--with=phrase,characters,dates|all] [file.json ...]. Needs `npm run build` first.
+// --with turns on FEATURES from src/search.js for this run, to compare against the default.
 // The test file maps a strip date to the queries that should find it: { "YYYY-MM-DD": ["query", ...] }.
 import { readFile, readdir } from 'node:fs/promises';
 import vm from 'node:vm';
 import * as ort from 'onnxruntime-web';
 import { makeEmbedder, QUERY_PREFIX } from '../src/embedder.js';
-import { buildKeywordIndex, scoreAll, SHOWN } from '../src/search.js';
+import { buildKeywordIndex, embeddingText, scoreAll, FEATURES, SHOWN } from '../src/search.js';
 
 // The ranking checks from CLAUDE.md. `rank` is the worst allowed rank; `above` lists dates that must outrank `date`.
 const CHECKS = [
@@ -22,6 +23,12 @@ const STYLES = ['short', 'sentence', 'half-remembered'];
 
 const args = process.argv.slice(2);
 const showAll = args.includes('--all');
+const withArg = args.find((a) => a.startsWith('--with='));
+if (withArg) for (const f of withArg.slice(7).split(',')) {
+  if (f !== 'all' && !(f in FEATURES)) throw new Error(`unknown feature ${f}; known: ${Object.keys(FEATURES).join(', ')}`);
+  for (const k of f === 'all' ? Object.keys(FEATURES) : [f]) FEATURES[k] = true;
+}
+console.log(`features on: ${Object.keys(FEATURES).filter((k) => FEATURES[k]).join(', ') || 'none'}`);
 const named = args.filter((a) => !a.startsWith('--'));
 const files = named.length ? named : (await readdir('eval')).filter((n) => /^test-queries.*\.json$/.test(n)).sort().map((n) => 'eval/' + n);
 
@@ -37,7 +44,7 @@ const index = buildKeywordIndex(STRIPS);
 const byDate = new Map(STRIPS.map((s, i) => [s.date, i]));
 
 async function rankOf(q, dates) {
-  const scores = scoreAll(index, vectors, DIM, await embed(QUERY_PREFIX + q), q);
+  const scores = scoreAll(index, vectors, DIM, await embed(QUERY_PREFIX + embeddingText(q)), q);
   let best = 0;
   for (let i = 1; i < scores.length; i++) if (scores[i] > scores[best]) best = i;
   const rank = (d) => {
