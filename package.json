@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "scripts": { "fetch-model": "node tools/fetch-model.mjs", "build": "node tools/build-app.mjs", "package": "node tools/package-app.mjs" },
+  "scripts": { "fetch-model": "node tools/fetch-model.mjs", "build": "node tools/build-app.mjs", "package": "node tools/package-app.mjs", "eval": "node tools/eval.mjs", "sample-strips": "node tools/sample-strips.mjs" },
   "engines": {
     "node": ">=22"
   },

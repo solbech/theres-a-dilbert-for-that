@@ -75,17 +75,26 @@ function keywordScores(index, query) {
 }
 
 // vectors: Int8Array of n * dim values, each unit vector scaled by 127.
-export function search(index, vectors, dim, queryVec, query) {
+// Returns every strip's unrounded 0-10 score, for search() and the eval script.
+export function scoreAll(index, vectors, dim, queryVec, query) {
   const kw = keywordScores(index, query);
-  const hits = [];
+  const scores = new Float32Array(index.n);
   for (let i = 0; i < index.n; i++) {
     let cos = 0;
     for (let d = 0, o = i * dim; d < dim; d++) cos += vectors[o + d] * queryVec[d];
     cos /= 127;
     const sem = Math.max(0, Math.min(1, (cos - SEM_LOW) / (SEM_HIGH - SEM_LOW)));
     // Keywords add to meaning, so a query sharing no words with a strip can still score well.
-    const score = 10 * (1 - Math.exp(-CURVE * (SEM_WEIGHT * sem + KEYWORD_WEIGHT * kw[i])));
-    if (score >= MIN_SCORE) hits.push({ i, score });
+    scores[i] = 10 * (1 - Math.exp(-CURVE * (SEM_WEIGHT * sem + KEYWORD_WEIGHT * kw[i])));
   }
+  return scores;
+}
+
+export const SHOWN = { MIN_SCORE, MAX_RESULTS };
+
+export function search(index, vectors, dim, queryVec, query) {
+  const scores = scoreAll(index, vectors, dim, queryVec, query);
+  const hits = [];
+  for (let i = 0; i < index.n; i++) if (scores[i] >= MIN_SCORE) hits.push({ i, score: scores[i] });
   return hits.sort((a, b) => b.score - a.score).slice(0, MAX_RESULTS).map((h) => ({ ...h, score: Math.round(h.score * 10) / 10 }));
 }

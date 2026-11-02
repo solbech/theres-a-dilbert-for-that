@@ -31,6 +31,8 @@ project, kept in a private repo for now.
 - `data/vectors.json`: cached embeddings. `tools/build-app.mjs` only embeds strips missing from it. Delete it after changing `embedText`.
 - `src/search.js`: ranking and score constants. `src/app.js`, `src/index.html`: the page. `src/index-archive.command`: the archive index script.
 - `tools/try-search.mjs "query" ...`: runs queries from the command line against `build/app/data.js`.
+- `tools/eval.mjs`: `npm run eval` runs the ranking checks below and the test queries in `eval/test-queries.json`, and prints top 1, top 5, shown and MRR. It exits non-zero if a check fails. `--all` lists every query.
+- `eval/sample-strips.jsonl`: 5 strips per year from `tools/sample-strips.mjs`, for writing test queries in a chat with the prompt in `eval/PROMPT.md`. Test queries are for measuring only, never for indexing.
 - `tools/extract.mjs`: the Sonnet 5.5 Batch API extraction. It needs the archive and an API key, and neither is on the Mac by default.
 - `tools/package-app.mjs`: `npm run package` writes `build/DilbertSearch.zip` from `build/app/`. Run it after `npm run build`.
 - `models/` and `build/` are not tracked. Run `npm run fetch-model`, then `npm run build`.
@@ -39,7 +41,7 @@ project, kept in a private repo for now.
 
 Done: extraction, index, working app built from all 12,384 strips, meaning search confirmed from `file://` in Safari and Chrome with a prototype, packaging, and the unzipped copy tested from `file://` in Chrome (load about 2.6 s, search under 50 ms, Copy works) and by the owner in Safari.
 
-Ranking checks that must keep passing, run with `tools/try-search.mjs`:
+Ranking checks that must keep passing, run with `npm run eval` (they are in `CHECKS` in `tools/eval.mjs`):
 
 - `We just had an anonymous satisfaction survey and we're only 5 people in the team. It's easy figure who answered what`: `2010-09-01` first.
 - `Dogbert is a cloud expert`: the March 2020 strips above `1992-12-13`.
@@ -52,4 +54,5 @@ Changes in `src/search.js` need only a rebuild. Changes to `embedText` mean dele
 
 Remaining:
 
-1. Tune ranking further with any more sample queries from the owner.
+1. Get `eval/test-queries.json` from the owner (written in ChatGPT from `eval/sample-strips.jsonl`) and record the baseline from `npm run eval`.
+2. Tune ranking against it: constants, phrase bonus, query names and dates, more vectors per strip.
