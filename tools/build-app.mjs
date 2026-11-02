@@ -48,5 +48,6 @@ await writeFile(out + 'wasm.js', `window.WASM_B64="${wasm.toString('base64')}";`
 await writeFile(out + 'model.js', `window.MODEL_B64="${onnx.toString('base64')}";window.VOCAB=${JSON.stringify(vocab)};`);
 await copyFile('src/index.html', out + 'index.html');
 await copyFile('src/index-archive.command', out + 'index-archive.command');
+await copyFile('src/README.txt', out + 'README.txt');
 await chmod(out + 'index-archive.command', 0o755);
 console.log(`built ${strips.length} strips`);

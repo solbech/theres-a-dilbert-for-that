@@ -7,7 +7,7 @@ const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
 const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const DEFAULT_ARCHIVE = '/Volumes/Public/Dilbert';
 
-const ARCHIVE_HINT = 'The folder holding the strips. If its folders or filenames differ from the original archive, run index-archive.command once. Safari only shows strips when this app is inside that folder.';
+const ARCHIVE_HINT = 'The folder holding the strips. If its folders or filenames differ from the original archive, run index-archive.command once. Safari only shows strips when this app is inside that folder. README.txt, next to this app, explains how to set up the archive.';
 const MISSING = 'Strip not found at this location. Check the archive location in Settings. Safari needs this app inside the archive folder.';
 
 function setting(key, fallback) {

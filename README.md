@@ -8,3 +8,21 @@ Dilbert strips and their text belong to their respective rights holders. This
 repository contains no strip images.
 
 Setup and status are in `CLAUDE.md`. `npm install`, `npm run fetch-model`, then `npm run build` writes the app to `build/app/`.
+
+## Showing the strips
+
+Search works without the strips, but showing them needs your own copy of the
+archive, which this project does not provide. You can look for one by searching
+for "download dilbert archive". Check that you are allowed to use any copy you
+find.
+
+1. Download and unpack the archive anywhere you like. The app expects year folders
+   (`1989`, `1990` and so on) directly inside the archive folder.
+2. **Chrome:** open Settings in the app, set Archive location to that folder, for
+   example `/Users/you/Dilbert`, and click Test location.
+3. **Safari:** Safari only lets the page load images from its own folder, so put
+   the app files inside the archive folder, next to the year folders. The app then
+   finds the strips by itself.
+4. If the folders or filenames differ, run `index-archive.command` once. It ships
+   with the app, finds each strip by the `YYYY-MM-DD` in its filename and writes
+   `archive-index.js` next to itself. Mac and Linux only.
