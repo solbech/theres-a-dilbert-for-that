@@ -28,8 +28,8 @@ project, kept in a private repo for now.
 ## Layout
 
 - `data/YYYY.jsonl`: extracted strips, all 12,384. Do not regenerate without asking: the run cost about $61.
-- `data/vectors.json`: cached embeddings. `tools/build-app.mjs` only embeds strips missing from it. Delete it after changing `embedText`.
-- `src/search.js`: ranking and score constants. `FEATURES` switches the extras: `phrase` (bonus for query words adjacent in a strip), `characters` (boost for strips with a character the query names, with aliases like PHB) and `dates` (boost for a year, range or decade in the query, which is also removed before embedding). All are off until the eval shows they help; try them with `--with=all` on `tools/eval.mjs` or `tools/try-search.mjs`. They add about 0.3 s to building the index at load. `src/app.js`, `src/index.html`: the page. `src/index-archive.command`: the archive index script.
+- `data/vectors.json`, `vectors-summary.json`, `vectors-dialogue.json`: cached embeddings, one file per entry in `VIEWS` in `tools/build-app.mjs`, which only embeds strips missing from them. Delete a file after changing that view's text.
+- `src/search.js`: ranking and score constants. `FEATURES` switches the extras: `phrase` (bonus for query words adjacent in a strip), `characters` (boost for strips with a character the query names, with aliases like PHB) and `dates` (boost for a year, range or decade in the query, which is also removed before embedding). All are off until the eval shows they help; try them with `--with=all` on `tools/eval.mjs` or `tools/try-search.mjs`. They add about 0.3 s to building the index at load. `views` is on: each strip has three vectors (description, summary, dialogue) and the best match counts, after `VIEW_OFFSET` is taken off. Without the offsets the summary and dialogue views made ChatGPT's results worse. `src/app.js`, `src/index.html`: the page. `src/index-archive.command`: the archive index script.
 - `tools/try-search.mjs "query" ...`: runs queries from the command line against `build/app/data.js`.
 - `tools/eval.mjs`: `npm run eval` runs the ranking checks below and the test queries in every `eval/test-queries*.json`, and prints top 1, top 5, shown and MRR, overall and per file. It exits non-zero if a check fails. `--all` lists every query.
 - `eval/sample-strips-1.jsonl`, `-2.jsonl`: separate sets of 5 strips per year from `tools/sample-strips.mjs` (set 1 for ChatGPT, set 2 for Gemini), for writing test queries in a chat with the prompt in `eval/PROMPT.md`. Test queries are for measuring only, never for indexing.
@@ -50,11 +50,11 @@ Ranking checks that must keep passing, run with `npm run eval` (they are in `CHE
 - `We had a manager requesting completely impossible metrics and we ended just suggesting random stuff`: `2013-08-31` in the results. This also depends on `SYNONYM_GROUPS`.
 - `cloud bunny`: `1992-12-13` first. `quality approaches zero`: `2005-09-16` first.
 
-Changes in `src/search.js` need only a rebuild. Changes to `embedText` mean deleting `data/vectors.json` and re-embedding.
+Baseline with one vector per strip, MRR: ChatGPT 0.766, Gemini 0.507. With three: 0.781 and 0.533 (top 5: 87.6% to 87.8%, 61.3% to 64.6%). Offsets were picked looking at both query sets, so later tuning has no untouched set.
+
+Changes in `src/search.js` need only a rebuild. Changes to a view's text mean deleting its vector file and re-embedding, about 7 to 15 minutes per file.
 
 Remaining:
 
-1. Get `eval/test-queries-chatgpt.json` and `eval/test-queries-gemini.json` from the owner (written from sample sets 1 and 2) and record the baseline from `npm run eval`.
-2. Compare `npm run eval` with and without `--with=phrase,characters,dates`, and turn on the ones that help.
-3. Several vectors per strip (summary and dialogue embedded separately), to be done on the Mac.
-4. Tune the constants against the test queries.
+1. Decide `phrase` and write a small test query set with names and dates for `characters` and `dates`, which the current sets cannot trigger.
+2. Tune the constants against the test queries.

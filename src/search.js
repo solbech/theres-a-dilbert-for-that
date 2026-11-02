@@ -15,8 +15,10 @@ const SYNONYM_GROUPS = [
 ];
 const SEM_LOW = 0.45, SEM_HIGH = 0.75, SEM_WEIGHT = 0.65, KEYWORD_WEIGHT = 1.2, SYNONYM_WEIGHT = 0.7, CURVE = 1.5, MIN_SCORE = 3, MAX_RESULTS = 25;
 const PHRASE_WEIGHT = 0.4, CHARACTER_WEIGHT = 0.25, DATE_WEIGHT = 0.3;
-// Ranking extras, off until tools/eval.mjs shows they help. Try them with `npm run eval -- --with=all`.
-export const FEATURES = { phrase: false, characters: false, dates: false };
+// Taken off the cosine of each view (description, summary, dialogue) before the best one is used.
+export const VIEW_OFFSET = [0, 0.05, 0.1];
+// Ranking extras, off until tools/eval.mjs shows they help. Try them with `npm run eval -- --with=all`. views is on: it did.
+export const FEATURES = { phrase: false, characters: false, dates: false, views: true };
 // Words people use for a character, matched against the strip's characters (lowercased).
 // Dilbert is left out: he is in most strips, so naming him says little.
 const CHARACTERS = [
@@ -167,7 +169,7 @@ function keywordScores(index, qTerms) {
   return scores.map((s) => Math.min(1, s / maxTotal));
 }
 
-// vectors: Int8Array of n * dim values, each unit vector scaled by 127.
+// vectors: Int8Array of n * views * dim values, each unit vector scaled by 127. Only the first view is used unless FEATURES.views is on.
 // Returns every strip's unrounded 0-10 score, for search() and the eval script.
 export function scoreAll(index, vectors, dim, queryVec, query) {
   const { range, rest } = parseDates(query);
@@ -175,11 +177,15 @@ export function scoreAll(index, vectors, dim, queryVec, query) {
   const kw = keywordScores(index, qTerms);
   const phrase = FEATURES.phrase ? phraseScores(index, qTerms) : null;
   const named = FEATURES.characters ? namedCharacters(query) : [];
+  const views = vectors.length / (index.n * dim), used = FEATURES.views ? views : 1;
   const scores = new Float32Array(index.n);
   for (let i = 0; i < index.n; i++) {
-    let cos = 0;
-    for (let d = 0, o = i * dim; d < dim; d++) cos += vectors[o + d] * queryVec[d];
-    cos /= 127;
+    let cos = -1;
+    for (let v = 0; v < used; v++) {
+      let c = 0;
+      for (let d = 0, o = (i * views + v) * dim; d < dim; d++) c += vectors[o + d] * queryVec[d];
+      cos = Math.max(cos, c / 127 - VIEW_OFFSET[v]);
+    }
     const sem = Math.max(0, Math.min(1, (cos - SEM_LOW) / (SEM_HIGH - SEM_LOW)));
     // Keywords add to meaning, so a query sharing no words with a strip can still score well.
     let extra = 0;
