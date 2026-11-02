@@ -15,6 +15,7 @@ project.
 - Safari only lets a `file://` page load images from its own folder and below (tested: absolute paths, parent folders and symlinks are blocked). So for Safari the app files go inside the archive folder, next to the year folders. The app detects this at startup and uses its own folder as the archive. Chrome works from anywhere.
 - Web interface opened directly from `index.html` (`file://`). No launcher, no server, nothing to install, no API key.
 - Delivered as `DilbertSearch.zip`: unzip and open.
+- There is also a private web version, for the owner and people they give a password. On a web server the app loads strips from `strip.php`, and hides the archive setting and the path and Copy row. A strip that does not load is simply left out. Never serve strips without a login: `.htaccess` must protect the whole site, and the strips stay outside the web root.
 
 ## Decisions
 
@@ -34,6 +35,7 @@ project.
 - `tools/eval.mjs`: `npm run eval` runs the ranking checks below and the test queries in every `eval/test-queries*.json`, and prints top 1, top 5, shown and MRR, overall and per file. It exits non-zero if a check fails. `--all` lists every query.
 - `eval/sample-strips-1.jsonl`, `-2.jsonl`: separate sets of 5 strips per year from `tools/sample-strips.mjs` (set 1 for ChatGPT, set 2 for Gemini), for writing test queries in a chat with the prompt in `eval/PROMPT.md`. Test queries are for measuring only, never for indexing.
 - `tools/extract.mjs`: the Sonnet 5.5 Batch API extraction. It needs the archive and an API key, and neither is on the Mac by default.
+- `src/web/strip.php`: sends a strip by date from `strips_archive/` next to the web root, as year folders of files named `YYYY-MM-DD...`. `src/web/htaccess.example`: the login. `tools/package-web.mjs`: `npm run package-web` writes `build/web/` from `build/app/`. Not yet deployed, and `strip.php` has not been run, because PHP is not on the Mac.
 - `tools/package-app.mjs`: `npm run package` writes `build/DilbertSearch.zip` from `build/app/`. Run it after `npm run build`.
 - `models/` and `build/` are not tracked. Run `npm run fetch-model`, then `npm run build`.
 

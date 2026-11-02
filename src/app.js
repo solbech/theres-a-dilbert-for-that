@@ -7,6 +7,8 @@ const $ = (id) => document.getElementById(id);
 const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
 const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const DEFAULT_ARCHIVE = '/Volumes/Public/Dilbert';
+// On a web server strips come from strip.php, so there is no archive location to set.
+const web = location.protocol !== 'file:';
 
 const ARCHIVE_HINT = 'The folder holding the strips. If its folders or filenames differ from the original archive, run index-archive.command once (index-archive.bat on Windows). Safari only shows strips when this app is inside that folder. README.txt, next to this app, explains how to set up the archive.';
 const MISSING = 'Strip not found at this location. Check the archive location in Settings. Safari needs this app inside the archive folder.';
@@ -33,11 +35,11 @@ const imageLoads = (url) => new Promise((resolve) => {
 function card(s, score) {
   const path = joinPath(archivePath(), stripFile(s));
   const lines = s.transcript.map((l) => `<p><b>${esc(l.speaker)}:</b> ${esc(l.text)}</p>`).join('');
-  const strip = showStrips() ? `<img class="strip" loading="lazy" alt="${esc(s.title)}" src="${esc(fileUrl(path))}">` : '';
+  const strip = showStrips() ? `<img class="strip" loading="lazy" alt="${esc(s.title)}" src="${web ? `strip.php?date=${s.date}` : esc(fileUrl(path))}">` : '';
   return `<article>
     <div class="head"><time>${s.date}</time><h2>${esc(s.title)}</h2><span class="score" title="Estimated match, 0 to 10">${score.toFixed(1)}</span></div>
     ${strip}
-    <div class="path"><code>${esc(path)}</code><button data-path="${esc(path)}">Copy</button></div>
+    ${web ? '' : `<div class="path"><code>${esc(path)}</code><button data-path="${esc(path)}">Copy</button></div>`}
     <details><summary>${esc(s.summary)}</summary><p>${esc(s.situation)}</p><p class="joke">${esc(s.punchline)}</p>${lines}</details>
   </article>`;
 }
@@ -52,7 +54,7 @@ async function start() {
   const vectors = new Int8Array(bytes.buffer, bytes.byteOffset, bytes.length);
   // Safari only lets a file:// page read its own folder, so an app inside the archive uses that folder.
   const sample = stripFile(STRIPS.find((s) => archiveIndex?.files[s.date]) || STRIPS[0]);
-  if (await imageLoads(encodePath(sample))) saveSetting('archive', folderOf(location.host, location.pathname));
+  if (!web && await imageLoads(encodePath(sample))) saveSetting('archive', folderOf(location.host, location.pathname));
   $('status').textContent = `${STRIPS.length.toLocaleString('en-US')} strips ready`;
   $('q').disabled = false;
   $('q').focus();
@@ -80,6 +82,7 @@ async function start() {
   // Image errors do not bubble, so this listens in the capture phase.
   $('results').addEventListener('error', (e) => {
     if (!e.target.matches('img.strip')) return;
+    if (web) { e.target.remove(); return; }
     const note = document.createElement('div');
     note.className = 'missing';
     note.textContent = MISSING;
@@ -92,6 +95,7 @@ async function start() {
     b.textContent = 'Copied';
     setTimeout(() => { b.textContent = 'Copy'; }, 1200);
   };
+  if (web) $('archive').closest('.field').style.display = 'none';
   $('archive').value = archivePath();
   $('archive').onchange = () => {
     saveSetting('archive', $('archive').value.trim());

@@ -8,6 +8,7 @@
     "fetch-model": "node tools/fetch-model.mjs",
     "build": "node tools/build-app.mjs",
     "package": "node tools/package-app.mjs",
+    "package-web": "node tools/package-web.mjs",
     "eval": "node tools/eval.mjs",
     "sample-strips": "node tools/sample-strips.mjs"
   },

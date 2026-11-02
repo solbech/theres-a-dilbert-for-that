@@ -1,0 +1,11 @@
+# Copy to .htaccess in the web root and set AuthUserFile to a file outside it.
+AuthType Basic
+AuthName "There's a Dilbert for that"
+AuthUserFile /absolute/path/outside/the/web/root/.htpasswd
+Require valid-user
+
+Options -Indexes
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/javascript application/javascript application/x-javascript
+</IfModule>
