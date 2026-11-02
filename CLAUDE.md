@@ -2,7 +2,7 @@
 
 Personal, offline search over the Dilbert archive. Describe an absurd workplace
 situation or half-remembered strip and get the matching strips. Unofficial fan
-project, kept in a private repo for now.
+project.
 
 ## Requirements
 

@@ -7,6 +7,15 @@ rights holders of Dilbert. The MIT licence covers this project's code only.
 Dilbert strips and their text belong to their respective rights holders. This
 repository contains no strip images.
 
+## Try it
+
+[Download DilbertSearch.zip](https://github.com/solbech/theres-a-dilbert-for-that/releases/latest/download/DilbertSearch.zip),
+unzip it and open `index.html` in Chrome, Edge or Safari. There is nothing to
+install and search works offline. To see the strips themselves, follow
+[Showing the strips](#showing-the-strips).
+
+## Building it yourself
+
 Setup and status are in `CLAUDE.md`. `npm install`, `npm run fetch-model`, then `npm run build` writes the app to `build/app/`. `npm run package` then writes `build/DilbertSearch.zip` from it.
 
 ## Showing the strips
