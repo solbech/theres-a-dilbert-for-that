@@ -50,4 +50,6 @@ await copyFile('src/index.html', out + 'index.html');
 await copyFile('src/index-archive.command', out + 'index-archive.command');
 await copyFile('src/README.txt', out + 'README.txt');
 await chmod(out + 'index-archive.command', 0o755);
+await copyFile('src/index-archive.ps1', out + 'index-archive.ps1');
+await copyFile('src/index-archive.bat', out + 'index-archive.bat');
 console.log(`built ${strips.length} strips`);

@@ -1,13 +1,14 @@
 import * as ort from 'onnxruntime-web/wasm';
 import { makeEmbedder, QUERY_PREFIX } from './embedder.js';
 import { buildKeywordIndex, embeddingText, search } from './search.js';
+import { cleanRoot, encodePath, fileUrl, folderOf, joinPath } from './paths.js';
 
 const $ = (id) => document.getElementById(id);
 const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
 const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const DEFAULT_ARCHIVE = '/Volumes/Public/Dilbert';
 
-const ARCHIVE_HINT = 'The folder holding the strips. If its folders or filenames differ from the original archive, run index-archive.command once. Safari only shows strips when this app is inside that folder. README.txt, next to this app, explains how to set up the archive.';
+const ARCHIVE_HINT = 'The folder holding the strips. If its folders or filenames differ from the original archive, run index-archive.command once (index-archive.bat on Windows). Safari only shows strips when this app is inside that folder. README.txt, next to this app, explains how to set up the archive.';
 const MISSING = 'Strip not found at this location. Check the archive location in Settings. Safari needs this app inside the archive folder.';
 
 function setting(key, fallback) {
@@ -19,12 +20,8 @@ function saveSetting(key, value) {
 // window.ARCHIVE_INDEX comes from the optional archive-index.js, written by index-archive.command.
 const archiveIndex = window.ARCHIVE_INDEX;
 const stripFile = (s) => archiveIndex?.files[s.date] ?? s.file;
-const archivePath = () => setting('archive', archiveIndex?.root || DEFAULT_ARCHIVE).replace(/\/+$/, '');
+const archivePath = () => cleanRoot(setting('archive', archiveIndex?.root || DEFAULT_ARCHIVE));
 const showStrips = () => setting('showStrips', 'on') === 'on';
-
-// Filenames can hold %, # and control characters, so each path segment is encoded.
-const encodePath = (path) => path.split('/').map(encodeURIComponent).join('/');
-const fileUrl = (path) => `file://${encodePath(path)}`;
 
 const imageLoads = (url) => new Promise((resolve) => {
   const probe = new Image();
@@ -34,7 +31,7 @@ const imageLoads = (url) => new Promise((resolve) => {
 });
 
 function card(s, score) {
-  const path = `${archivePath()}/${stripFile(s)}`;
+  const path = joinPath(archivePath(), stripFile(s));
   const lines = s.transcript.map((l) => `<p><b>${esc(l.speaker)}:</b> ${esc(l.text)}</p>`).join('');
   const strip = showStrips() ? `<img class="strip" loading="lazy" alt="${esc(s.title)}" src="${esc(fileUrl(path))}">` : '';
   return `<article>
@@ -55,7 +52,7 @@ async function start() {
   const vectors = new Int8Array(bytes.buffer, bytes.byteOffset, bytes.length);
   // Safari only lets a file:// page read its own folder, so an app inside the archive uses that folder.
   const sample = stripFile(STRIPS.find((s) => archiveIndex?.files[s.date]) || STRIPS[0]);
-  if (await imageLoads(encodePath(sample))) saveSetting('archive', decodeURIComponent(location.pathname).replace(/\/[^/]*$/, ''));
+  if (await imageLoads(encodePath(sample))) saveSetting('archive', folderOf(location.host, location.pathname));
   $('status').textContent = `${STRIPS.length.toLocaleString('en-US')} strips ready`;
   $('q').disabled = false;
   $('q').focus();
@@ -103,7 +100,7 @@ async function start() {
   };
   $('test-archive').onclick = async () => {
     saveSetting('archive', $('archive').value.trim());
-    if (await imageLoads(fileUrl(`${archivePath()}/${sample}`))) hint('Found the test strip at this location.', false);
+    if (await imageLoads(fileUrl(joinPath(archivePath(), sample)))) hint('Found the test strip at this location.', false);
     else hint("Couldn't find the test strip here. Check the path and that the drive is connected. In Safari, this app must be inside the archive folder.", true);
     render();
   };

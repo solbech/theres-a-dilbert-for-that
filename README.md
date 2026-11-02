@@ -19,10 +19,11 @@ find.
 1. Download and unpack the archive anywhere you like. The app expects year folders
    (`1989`, `1990` and so on) directly inside the archive folder.
 2. **Chrome:** open Settings in the app, set Archive location to that folder, for
-   example `/Users/you/Dilbert`, and click Test location.
+   example `/Users/you/Dilbert` or `C:\Dilbert`, and click Test location. On
+   Windows, Edge works the same way.
 3. **Safari:** Safari only lets the page load images from its own folder, so put
    the app files inside the archive folder, next to the year folders. The app then
    finds the strips by itself.
-4. If the folders or filenames differ, run `index-archive.command` once. It ships
-   with the app, finds each strip by the `YYYY-MM-DD` in its filename and writes
-   `archive-index.js` next to itself. Mac and Linux only.
+4. If the folders or filenames differ, run `index-archive.command` once, or
+   `index-archive.bat` on Windows. Both ship with the app, find each strip by the
+   `YYYY-MM-DD` in its filename and write `archive-index.js` next to themselves.
