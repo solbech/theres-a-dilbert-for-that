@@ -54,7 +54,6 @@ Baseline with one vector per strip, MRR: ChatGPT 0.766, Gemini 0.507. With three
 
 Changes in `src/search.js` need only a rebuild. Changes to a view's text mean deleting its vector file and re-embedding, about 7 to 15 minutes per file.
 
-Remaining:
+Tuning the constants was tried and dropped: 400 combinations of the keyword, meaning, synonym and offset settings gained at most 0.003 MRR, and did no better on queries held out from tuning. Search is weakest on heavily reworded queries, which would need something like a stronger embedding model.
 
-1. Write a small test query set with names and dates for `characters` and `dates`, which the current sets cannot trigger.
-2. Tune the constants against the test queries.
+Possible later: `characters` and `dates` stay in the code, switched off and untested. Turning them on would first need a small test query set with names and dates, which the current sets cannot trigger.
