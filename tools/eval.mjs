@@ -1,5 +1,5 @@
 // Measures ranking against the CLAUDE.md checks and the test queries in eval/test-queries*.json.
-// Usage: node tools/eval.mjs [--all] [--with=phrase,characters,dates|all] [file.json ...]. Needs `npm run build` first.
+// Usage: node tools/eval.mjs [--all] [--with=characters,dates|all] [file.json ...]. Needs `npm run build` first.
 // --with turns on FEATURES from src/search.js for this run, to compare against the default.
 // The test file maps a strip date to the queries that should find it: { "YYYY-MM-DD": ["query", ...] }.
 import { readFile, readdir } from 'node:fs/promises';

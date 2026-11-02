@@ -14,11 +14,11 @@ const SYNONYM_GROUPS = [
   'budget cost funding', 'pointless useless meaningless',
 ];
 const SEM_LOW = 0.45, SEM_HIGH = 0.75, SEM_WEIGHT = 0.65, KEYWORD_WEIGHT = 1.2, SYNONYM_WEIGHT = 0.7, CURVE = 1.5, MIN_SCORE = 3, MAX_RESULTS = 25;
-const PHRASE_WEIGHT = 0.4, CHARACTER_WEIGHT = 0.25, DATE_WEIGHT = 0.3;
+const CHARACTER_WEIGHT = 0.25, DATE_WEIGHT = 0.3;
 // Taken off the cosine of each view (description, summary, dialogue) before the best one is used.
 export const VIEW_OFFSET = [0, 0.05, 0.1];
 // Ranking extras, off until tools/eval.mjs shows they help. Try them with `npm run eval -- --with=all`. views is on: it did.
-export const FEATURES = { phrase: false, characters: false, dates: false, views: true };
+export const FEATURES = { characters: false, dates: false, views: true };
 // Words people use for a character, matched against the strip's characters (lowercased).
 // Dilbert is left out: he is in most strips, so naming him says little.
 const CHARACTERS = [
@@ -56,21 +56,17 @@ const fields = (s) => ({
 });
 
 export function buildKeywordIndex(strips) {
-  const postings = new Map(), ids = new Map(), seqs = [];
+  const postings = new Map();
   let total = 0;
   const lengths = strips.map((s, i) => {
-    const counts = new Map(), seq = [];
+    const counts = new Map();
     let len = 0;
     for (const [name, text] of Object.entries(fields(s))) {
       for (const t of terms(text)) {
         counts.set(t, (counts.get(t) || 0) + FIELD_WEIGHT[name]);
         len += FIELD_WEIGHT[name];
-        if (!ids.has(t)) ids.set(t, ids.size);
-        seq.push(ids.get(t));
       }
-      seq.push(-1); // a phrase never spans two fields
     }
-    seqs.push(Int32Array.from(seq));
     for (const [t, c] of counts) {
       if (!postings.has(t)) postings.set(t, []);
       postings.get(t).push([i, c]);
@@ -80,7 +76,7 @@ export function buildKeywordIndex(strips) {
   });
   const characters = strips.map((s) => new Set(s.characters.map((c) => c.toLowerCase())));
   const years = Int16Array.from(strips, (s) => +s.date.slice(0, 4));
-  return { postings, ids, seqs, characters, years, lengths, avg: total / strips.length, n: strips.length };
+  return { postings, characters, years, lengths, avg: total / strips.length, n: strips.length };
 }
 
 const idfOf = (index, t) => Math.log(1 + (index.n + 0.5) / ((index.postings.get(t)?.length || 0) + 0.5));
@@ -119,31 +115,6 @@ export function parseDates(query) {
 // The text to embed for a query, so a date in it does not pull the meaning match off course.
 export const embeddingText = (query) => parseDates(query).rest || query;
 
-// 0-1 per strip: how much of the query appears as adjacent words, weighted by how rare the words are.
-function phraseScores(index, qTerms) {
-  const scores = new Float32Array(index.n);
-  let total = 0;
-  for (let k = 0; k + 1 < qTerms.length; k++) {
-    const a = index.ids.get(qTerms[k]), b = index.ids.get(qTerms[k + 1]);
-    if (a === undefined || b === undefined || a === b) continue;
-    const w = (idfOf(index, qTerms[k]) + idfOf(index, qTerms[k + 1])) / 2;
-    total += w;
-    const pa = index.postings.get(qTerms[k]), pb = index.postings.get(qTerms[k + 1]);
-    for (let x = 0, y = 0; x < pa.length && y < pb.length;) { // both lists are in strip order
-      const i = pa[x][0], j = pb[y][0];
-      if (i < j) x++;
-      else if (j < i) y++;
-      else {
-        const seq = index.seqs[i];
-        for (let p = 0; p + 1 < seq.length; p++) if (seq[p] === a && seq[p + 1] === b) { scores[i] += w; break; }
-        x++; y++;
-      }
-    }
-  }
-  if (total) for (let i = 0; i < index.n; i++) scores[i] /= total;
-  return scores;
-}
-
 // Indexes of the CHARACTERS entries the query names.
 function namedCharacters(query) {
   const q = plain(query);
@@ -175,7 +146,6 @@ export function scoreAll(index, vectors, dim, queryVec, query) {
   const { range, rest } = parseDates(query);
   const qTerms = terms(rest).filter((t) => !QUERY_STOP.has(t));
   const kw = keywordScores(index, qTerms);
-  const phrase = FEATURES.phrase ? phraseScores(index, qTerms) : null;
   const named = FEATURES.characters ? namedCharacters(query) : [];
   const views = vectors.length / (index.n * dim), used = FEATURES.views ? views : 1;
   const scores = new Float32Array(index.n);
@@ -189,7 +159,6 @@ export function scoreAll(index, vectors, dim, queryVec, query) {
     const sem = Math.max(0, Math.min(1, (cos - SEM_LOW) / (SEM_HIGH - SEM_LOW)));
     // Keywords add to meaning, so a query sharing no words with a strip can still score well.
     let extra = 0;
-    if (phrase) extra += PHRASE_WEIGHT * phrase[i];
     if (named.length) extra += (CHARACTER_WEIGHT * named.filter((names) => names.some((c) => index.characters[i].has(c))).length) / named.length;
     if (range) {
       const y = index.years[i], off = y < range[0] ? range[0] - y : y > range[1] ? y - range[1] : 0;

@@ -1,4 +1,4 @@
-// Runs test queries against the built data from the command line. --with=phrase,characters,dates or --with=all turns on FEATURES.
+// Runs test queries against the built data from the command line. --with=characters,dates or --with=all turns on FEATURES.
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import * as ort from 'onnxruntime-web';
