@@ -1,7 +1,7 @@
-// Measures ranking against the CLAUDE.md checks and the test queries in eval/test-queries.json.
-// Usage: node tools/eval.mjs [--all] [file.json]. Needs `npm run build` first.
+// Measures ranking against the CLAUDE.md checks and the test queries in eval/test-queries*.json.
+// Usage: node tools/eval.mjs [--all] [file.json ...]. Needs `npm run build` first.
 // The test file maps a strip date to the queries that should find it: { "YYYY-MM-DD": ["query", ...] }.
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import vm from 'node:vm';
 import * as ort from 'onnxruntime-web';
 import { makeEmbedder, QUERY_PREFIX } from '../src/embedder.js';
@@ -22,7 +22,8 @@ const STYLES = ['short', 'sentence', 'half-remembered'];
 
 const args = process.argv.slice(2);
 const showAll = args.includes('--all');
-const file = args.find((a) => !a.startsWith('--')) || 'eval/test-queries.json';
+const named = args.filter((a) => !a.startsWith('--'));
+const files = named.length ? named : (await readdir('eval')).filter((n) => /^test-queries.*\.json$/.test(n)).sort().map((n) => 'eval/' + n);
 
 const ctx = { window: {} };
 vm.runInNewContext(await readFile('build/app/data.js', 'utf8'), ctx);
@@ -60,20 +61,23 @@ for (const c of CHECKS) {
   console.log(`${ok ? 'pass' : 'FAIL'}  ${detail}  "${c.q}"`);
 }
 
-let tests;
-try {
-  tests = JSON.parse(await readFile(file, 'utf8'));
-} catch (e) {
-  console.log(`\nNo test queries read from ${file} (${e.code || e.message}).`);
-  process.exit(failedChecks ? 1 : 0);
-}
+if (!files.length) console.log('\nNo eval/test-queries*.json files yet.');
 const rows = [];
-for (const [date, queries] of Object.entries(tests)) {
-  if (!byDate.has(date)) { console.log(`skipped unknown date ${date}`); continue; }
-  if (!Array.isArray(queries)) { console.log(`skipped ${date}: expected a list of queries`); continue; }
-  for (const [k, q] of queries.entries()) {
-    const { ranks: [r], top } = await rankOf(q, [date]);
-    rows.push({ date, q, style: STYLES[k] || 'other', ...r, top });
+for (const file of files) {
+  let tests;
+  try {
+    tests = JSON.parse(await readFile(file, 'utf8'));
+  } catch (e) {
+    console.log(`\nskipped ${file}: ${e.code || e.message}`);
+    continue;
+  }
+  for (const [date, queries] of Object.entries(tests)) {
+    if (!byDate.has(date)) { console.log(`${file}: skipped unknown date ${date}`); continue; }
+    if (!Array.isArray(queries)) { console.log(`${file}: skipped ${date}, expected a list of queries`); continue; }
+    for (const [k, q] of queries.entries()) {
+      const { ranks: [r], top } = await rankOf(q, [date]);
+      rows.push({ file, date, q, style: STYLES[k] || 'other', ...r, top });
+    }
   }
 }
 if (!rows.length) process.exit(failedChecks ? 1 : 0);
@@ -89,7 +93,10 @@ for (const r of list.sort((a, b) => b.rank - a.rank)) {
   console.log(`${fmt(r).padEnd(14)} ${r.date} "${r.q}"`);
   if (r.rank > 1) console.log(`${''.padEnd(14)} first: ${r.top.date} ${r.top.title}`);
 }
-console.log(`\n## Summary (${file}): queries, found first, in top 5, in the shown results, mean reciprocal rank`);
-console.log(`all              ${summarize(rows)}`);
-for (const style of [...new Set(rows.map((r) => r.style))]) console.log(`${style.padEnd(16)} ${summarize(rows.filter((r) => r.style === style))}`);
+console.log('\n## Summary: queries, found first, in top 5, in the shown results, mean reciprocal rank');
+const groups = [['all', rows]];
+if (files.length > 1) for (const f of files) groups.push([f.replace(/^.*test-queries-?|\.json$/g, '') || f, rows.filter((r) => r.file === f)]);
+for (const style of [...new Set(rows.map((r) => r.style))]) groups.push([style, rows.filter((r) => r.style === style)]);
+const width = Math.max(...groups.map(([name]) => name.length)) + 2;
+for (const [name, rs] of groups) if (rs.length) console.log(`${name.padEnd(width)} ${summarize(rs)}`);
 process.exit(failedChecks ? 1 : 0);

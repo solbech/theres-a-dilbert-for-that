@@ -1,7 +1,9 @@
 # Prompt for writing test queries
 
-Upload `eval/sample-strips.jsonl` to a chat (ChatGPT Thinking, Claude or Gemini) with
-the prompt below. Save the answer as `eval/test-queries.json` and run `npm run eval`.
+Upload one sample set to a chat with the prompt below, using a different model for each
+set: `eval/sample-strips-1.jsonl` to ChatGPT, `eval/sample-strips-2.jsonl` to Gemini.
+Save each answer as `eval/test-queries-<model>.json` (for example `test-queries-chatgpt.json`)
+and run `npm run eval`, which reads every `eval/test-queries*.json` and reports each one.
 
 ```
 The attached file has one comic strip per line: date, title, situation, punchline and

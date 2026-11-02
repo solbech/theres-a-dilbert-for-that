@@ -31,8 +31,8 @@ project, kept in a private repo for now.
 - `data/vectors.json`: cached embeddings. `tools/build-app.mjs` only embeds strips missing from it. Delete it after changing `embedText`.
 - `src/search.js`: ranking and score constants. `src/app.js`, `src/index.html`: the page. `src/index-archive.command`: the archive index script.
 - `tools/try-search.mjs "query" ...`: runs queries from the command line against `build/app/data.js`.
-- `tools/eval.mjs`: `npm run eval` runs the ranking checks below and the test queries in `eval/test-queries.json`, and prints top 1, top 5, shown and MRR. It exits non-zero if a check fails. `--all` lists every query.
-- `eval/sample-strips.jsonl`: 5 strips per year from `tools/sample-strips.mjs`, for writing test queries in a chat with the prompt in `eval/PROMPT.md`. Test queries are for measuring only, never for indexing.
+- `tools/eval.mjs`: `npm run eval` runs the ranking checks below and the test queries in every `eval/test-queries*.json`, and prints top 1, top 5, shown and MRR, overall and per file. It exits non-zero if a check fails. `--all` lists every query.
+- `eval/sample-strips-1.jsonl`, `-2.jsonl`: separate sets of 5 strips per year from `tools/sample-strips.mjs` (set 1 for ChatGPT, set 2 for Gemini), for writing test queries in a chat with the prompt in `eval/PROMPT.md`. Test queries are for measuring only, never for indexing.
 - `tools/extract.mjs`: the Sonnet 5.5 Batch API extraction. It needs the archive and an API key, and neither is on the Mac by default.
 - `tools/package-app.mjs`: `npm run package` writes `build/DilbertSearch.zip` from `build/app/`. Run it after `npm run build`.
 - `models/` and `build/` are not tracked. Run `npm run fetch-model`, then `npm run build`.
@@ -54,5 +54,5 @@ Changes in `src/search.js` need only a rebuild. Changes to `embedText` mean dele
 
 Remaining:
 
-1. Get `eval/test-queries.json` from the owner (written in ChatGPT from `eval/sample-strips.jsonl`) and record the baseline from `npm run eval`.
+1. Get `eval/test-queries-chatgpt.json` and `eval/test-queries-gemini.json` from the owner (written from sample sets 1 and 2) and record the baseline from `npm run eval`.
 2. Tune ranking against it: constants, phrase bonus, query names and dates, more vectors per strip.
